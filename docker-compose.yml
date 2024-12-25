@@ -1,0 +1,25 @@
+version: '3.8'
+services:
+  train:
+    image: rle
+    shm_size: 8g
+
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: rle
+    user: "user"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+    volumes:
+      - ./:/workspace
+      # - ${HOME}/.clearml/cache:/home/user/.clearml/cache
+      - ${HOME}/clearml.conf:/home/user/clearml.conf
+      - /content/files/.clearml:/content/files/.clearml

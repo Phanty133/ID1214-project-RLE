@@ -1,0 +1,25 @@
+[project]
+name = "room-layout-estimation"
+version = "0.1.0"
+description = ""
+readme = "README.md"
+requires-python = "==3.12.7"
+dependencies = [
+    "torch==2.5.1",
+    "numpy",
+    "clearml",
+    "torchvision",
+    "lightning",
+    "transformers",
+    "opencv-python",
+    "jaxtyping"
+]
+
+[tool.ruff]
+line-length = 110
+
+[tool.ruff.lint]
+select = ["E", "F", "B", "C901", "I"]
+typing-modules = ["typing", "jaxtyping"]
+ignore = ["F722"]
+task-tags = ["TODO", "FIXME", "XXX", "HACK", "STUPID"]
