@@ -12,7 +12,11 @@ dependencies = [
     "lightning",
     "transformers",
     "opencv-python",
-    "jaxtyping"
+    "jaxtyping",
+    "httpx>=0.28.1",
+    "rich>=13.9.4",
+    "orjson>=3.10.12",
+    "tensorboardx>=2.6.2.2",
 ]
 
 [tool.ruff]

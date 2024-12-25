@@ -13,6 +13,7 @@ class LSConfig(TypedDict):
     cls_coef: float
     coord_coef: float
     initial_lr: float
+    compile_model: bool
 
 
 class LSOutput(TypedDict):
@@ -22,8 +23,10 @@ class LSOutput(TypedDict):
 
 class LightningSystem(LightningModule):
     def __init__(self, config: LSConfig):
+        super(LightningSystem, self).__init__()
+
         self.loss = TotalLoss(config["cls_coef"], config["coord_coef"])
-        self.model = Model()
+        self.model = Model(compile_layers=config["compile_model"])
         self.config = config
 
     def configure_optimizers(self):
@@ -45,6 +48,7 @@ class LightningSystem(LightningModule):
     def validation_step(self, batch: batch_types.Batch, batch_idx: int) -> LSOutput:
         loss = self._shared_step(batch)
         out: LSOutput = {"losses": loss, "loss": loss["total"]}
+        self.log("valid_loss", loss["total"])  # To use with the checkpointing callback
 
         return out
 

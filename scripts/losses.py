@@ -1,5 +1,6 @@
 from typing import TypedDict
 
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from data import tokens
@@ -38,7 +39,7 @@ class ClsLoss(nn.Module):
         self.loss = nn.CrossEntropyLoss(ignore_index=tokens.TokenCls.PAD.value)
 
     def forward(self, pred: Float32[Tensor, "B N C"], target: Int32[Tensor, "B N"]) -> Float32[Tensor, ""]:
-        return self.loss.forward(pred.reshape((-1, pred.shape[-1])), target.reshape((-1, pred.shape[-1])))
+        return self.loss.forward(pred.reshape((-1, pred.shape[-1])), target.reshape((-1,)).to(torch.int64))
 
 
 class TotalLoss(nn.Module):

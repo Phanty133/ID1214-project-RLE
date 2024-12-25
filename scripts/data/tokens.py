@@ -31,7 +31,10 @@ class Token:
 
     @staticmethod
     def coo(coord: Float32[Tensor, "2"] | tuple[float, float]) -> "Token":
-        return Token(TokenCls.COO, torch.tensor(coord, dtype=torch.float32))
+        if isinstance(coord, tuple):
+            coord = torch.tensor(coord, dtype=torch.float32)
+
+        return Token(TokenCls.COO, coord)
 
 
 class TokenSequence(TypedDict):
@@ -75,7 +78,7 @@ def pack_token_sequences(sequences: list[TokenSequence] | list[list[Token]]) -> 
 
     cls = torch.stack(out_cls)
     coord = torch.stack(out_coord)
-    padding_mask = (cls == TokenCls.PAD.value).float() * -torch.inf
+    padding_mask = torch.where(cls == TokenCls.PAD.value, -torch.inf, 0.0)
     batch: TokenBatch = {
         "cls": cls,
         "coord": coord,

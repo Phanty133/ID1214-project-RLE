@@ -13,6 +13,7 @@ class Encoder(nn.Module):
         embed_dim: int,
         swin_ckpt="microsoft/swinv2-base-patch4-window12to24-192to384-22kto1k-ft",
     ):
+        super(Encoder, self).__init__()
         self.embed_dim = embed_dim
         self.img_encoder = Swinv2Model.from_pretrained(swin_ckpt)
         self.reproj = nn.Linear(self.img_encoder_config.hidden_size, embed_dim)

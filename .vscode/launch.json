@@ -6,11 +6,14 @@
     "configurations": [
 
         {
-            "name": "Python Debugger: Current File",
+            "name": "Train",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/scripts/train.py",
-            "console": "integratedTerminal"
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
         }
     ]
 }

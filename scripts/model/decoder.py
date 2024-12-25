@@ -7,6 +7,7 @@ from torch import Tensor
 
 class Decoder(nn.Module):
     def __init__(self, embed_dim: int, num_layers: int, num_heads: int, max_len: int = 64):
+        super(Decoder, self).__init__()
         dec_layer = nn.TransformerDecoderLayer(
             embed_dim,
             num_heads,

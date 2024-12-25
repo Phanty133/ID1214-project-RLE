@@ -23,6 +23,8 @@ class ModelHeads(TypedDict):
 
 class Model(nn.Module):
     def __init__(self, embed_size=768, num_layers=6, num_heads=12, max_len=64, compile_layers=False):
+        super(Model, self).__init__()
+
         self.embed_size = embed_size
         self.encoder = Encoder(embed_size)
         self.decoder = Decoder(embed_size, num_layers, num_heads, max_len)

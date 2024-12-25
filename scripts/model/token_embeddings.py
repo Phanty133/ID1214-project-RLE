@@ -7,6 +7,8 @@ from torch import Tensor
 
 class TokenEmbeddings(nn.Module):
     def __init__(self, embed_size: int, coord_dims: int = 2):
+        super(TokenEmbeddings, self).__init__()
+
         self.cls_embed = nn.Embedding(self.num_classes, embed_size)
         self.coo_embed = nn.Linear(coord_dims, embed_size)
         self.reembed = nn.Linear(embed_size * 2, embed_size)
