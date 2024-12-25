@@ -10,11 +10,11 @@ TRAIN_DATASET = PanoContextDataset
 VALID_DATASET = PanoContextDataset
 IMAGE_HW: tuple[int, int] = (384, 384)
 BATCH_SIZE: int = 1
-GRAD_ACC = 32
+GRAD_ACC = 48
 NUM_DATA_WORKERS: int = 0
 
 LS_CONFIG: LSConfig = {
-    "cls_coef": 0.01,
+    "cls_coef": 5e-4,
     "coord_coef": 1.0,
     "initial_lr": 5e-5,
     "compile_model": False,

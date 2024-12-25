@@ -79,7 +79,7 @@ class ImageReporter(Callback):
             self._report_image(batch["idx"][idx], image, trainer)
             self._cur_samples += 1
 
-    def _on_epoch_end(self) -> None:
+    def _clear_sample_counter(self) -> None:
         self._cur_samples = 0
 
     def on_train_batch_end(  # type: ignore
@@ -106,11 +106,11 @@ class ImageReporter(Callback):
     def on_test_batch_end(self, *args, **kwargs) -> None:
         self.on_validation_epoch_end(*args, **kwargs)
 
-    def on_train_epoch_end(self, trainer: Trainer, pl_module: LightningModule) -> None:
-        self._on_epoch_end()
+    def on_train_epoch_start(self, trainer: Trainer, pl_module: LightningModule) -> None:
+        self._clear_sample_counter()
 
-    def on_validation_epoch_end(self, trainer: Trainer, pl_module: LightningModule) -> None:
-        self._on_epoch_end()
+    def on_validation_epoch_start(self, trainer: Trainer, pl_module: LightningModule) -> None:
+        self._clear_sample_counter()
 
-    def on_test_epoch_end(self, *args, **kwargs) -> None:
+    def on_test_epoch_start(self, *args, **kwargs) -> None:
         self.on_validation_epoch_end(*args, **kwargs)

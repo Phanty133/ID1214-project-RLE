@@ -38,7 +38,7 @@ class Model(nn.Module):
             self.heads["cls"] = cast(ClassHead, torch.compile(self.heads["cls"], fullgraph=True))
             self.heads["coord"] = cast(CoordHead, torch.compile(self.heads["coord"], fullgraph=True))
             self.encoder = cast(Encoder, torch.compile(self.encoder, fullgraph=True))
-            # self.decoder = torch.compile(self.decoder, fullgraph=True) # TODO: might be a bit finnicky
+            self.decoder = cast(Decoder, torch.compile(self.decoder, fullgraph=True))
 
     def forward_encoder(self, image: Float32[Tensor, "B C H W"]) -> Float32[Tensor, "B N_enc C_enc"]:
         return self.encoder.forward(image)
