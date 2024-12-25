@@ -1,4 +1,5 @@
 import itertools
+from typing import Any, Mapping
 
 import clearml
 import config
@@ -31,6 +32,15 @@ def draw_tokens(
         img = cv2.circle(img, tuple(pt), 6, color, 2)
         img = cv2.putText(
             img, str(idx), tuple(pt + np.array([0, -10])), cv2.FONT_HERSHEY_SIMPLEX, 0.75, color, 2
+        )
+
+    return img
+
+
+def overlay_metadata(img: UInt8[np.ndarray, "H W C"], metadata: Mapping[str, Any]):
+    for idx, (k, v) in enumerate(metadata.items()):
+        img = cv2.putText(
+            img, f"{k}: {v:3f}", (5, 15 + 15 * idx), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1
         )
 
     return img
@@ -75,6 +85,7 @@ class ImageReporter(Callback):
             image = sample["image"]
             image = draw_tokens(image, sample["target"], (0, 255, 0))
             image = draw_tokens(image, pred_seq, (255, 0, 0))
+            image = overlay_metadata(image, sample["metadata"])
 
             self._report_image(batch["idx"][idx], image, trainer)
             self._cur_samples += 1

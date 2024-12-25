@@ -1,4 +1,4 @@
-from typing import Any, TypedDict
+from typing import Any, Mapping, TypedDict
 
 import numpy as np
 from data import tokens
@@ -20,7 +20,7 @@ class Sample(TypedDict):
     idx: str
     model_input: ModelInputSample
     target: tokens.TokenSequence
-    metadata: dict[str, Any]
+    metadata: Mapping[str, Any]
     image: Float32[np.ndarray, "H W C"]
 
 
@@ -28,7 +28,7 @@ class Batch(TypedDict):
     idx: list[str]
     model_input: ModelInputBatch
     target: tokens.TokenBatch
-    metadata: list[dict[str, Any]]
+    metadata: list[Mapping[str, Any]]
     images: list[Float32[np.ndarray, "H W C"]]
 
 
