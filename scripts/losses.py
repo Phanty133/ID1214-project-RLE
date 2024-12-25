@@ -36,10 +36,14 @@ class CoordLoss(nn.Module):
 class ClsLoss(nn.Module):
     def __init__(self):
         super(ClsLoss, self).__init__()
-        self.loss = nn.CrossEntropyLoss(ignore_index=tokens.TokenCls.PAD.value)
+        self.loss = nn.CrossEntropyLoss()
 
     def forward(self, pred: Float32[Tensor, "B N C"], target: Int32[Tensor, "B N"]) -> Float32[Tensor, ""]:
-        return self.loss.forward(pred.reshape((-1, pred.shape[-1])), target.reshape((-1,)).to(torch.int64))
+        ignore_mask = target == tokens.TokenCls.PAD.value
+        pred = pred[~ignore_mask].reshape((-1, pred.shape[-1]))
+        target = target[~ignore_mask].reshape((-1,)).to(torch.int64)
+
+        return self.loss.forward(pred, target)
 
 
 class TotalLoss(nn.Module):

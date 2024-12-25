@@ -14,7 +14,7 @@ class ClassHead(nn.Module):
         return len(TokenCls)
 
     @staticmethod
-    def get_classes(x: Float32[Tensor, "B N C"]) -> Float32[Tensor, "B N"]:
+    def get_classes(x: Float32[Tensor, "*B N C"]) -> Float32[Tensor, "*B N"]:
         return x.argmax(dim=-1)
 
     def forward(self, x: Float32[Tensor, "B N C"]) -> Float32[Tensor, "B N C"]:

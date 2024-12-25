@@ -4,6 +4,8 @@ import torch
 from data.data_module import DataModule
 from lightning_system import LightningSystem
 
+from scripts.callbacks import image_reporter
+
 
 def train():
     torch.set_float32_matmul_precision("medium")
@@ -16,6 +18,7 @@ def train():
         log_every_n_steps=25,
         accumulate_grad_batches=config.GRAD_ACC,
         num_nodes=1,
+        callbacks=[image_reporter.ImageReporter(50)],
     )
     trainer.fit(ls, dm)
 

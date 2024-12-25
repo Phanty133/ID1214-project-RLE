@@ -30,3 +30,32 @@ class Batch(TypedDict):
     target: tokens.TokenBatch
     metadata: list[dict[str, Any]]
     images: list[Float32[np.ndarray, "H W C"]]
+
+
+def split_batch(batch: Batch) -> list[Sample]:
+    out: list[Sample] = []
+
+    for idx, sample_idx in enumerate(batch["idx"]):
+        input_seq: tokens.TokenSequence = {
+            "cls": batch["model_input"]["coords"]["cls"][idx],
+            "coord": batch["model_input"]["coords"]["coord"][idx],
+        }
+        target_seq: tokens.TokenSequence = {
+            "cls": batch["target"]["cls"][idx],
+            "coord": batch["target"]["coord"][idx],
+        }
+
+        out.append(
+            {
+                "idx": sample_idx,
+                "model_input": {
+                    "image": batch["model_input"]["images"][idx],
+                    "coords": input_seq,
+                },
+                "target": target_seq,
+                "metadata": batch["metadata"][idx],
+                "image": batch["images"][idx],
+            }
+        )
+
+    return out

@@ -1,3 +1,4 @@
 /datasets
 /lightning_logs
 __pycache__
+/outputs

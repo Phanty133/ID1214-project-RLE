@@ -1,11 +1,12 @@
 from typing import TypedDict
 
 import torch
-from data import batch_types
+from data import batch_types, tokens
 from jaxtyping import Float32
 from lightning import LightningModule
 from losses import LossOutput, TotalLoss
-from model.model import Model
+from model.heads import ClassHead
+from model.model import Model, ModelOutput
 from torch import Tensor
 
 
@@ -19,6 +20,7 @@ class LSConfig(TypedDict):
 class LSOutput(TypedDict):
     losses: LossOutput
     loss: Float32[Tensor, ""]
+    pred: tokens.TokenBatch
 
 
 class LightningSystem(LightningModule):
@@ -33,22 +35,30 @@ class LightningSystem(LightningModule):
         # TODO: Cosine or poly learning rate decay?
         return torch.optim.AdamW(self.model.parameters(), lr=self.config["initial_lr"])
 
-    def _shared_step(self, batch: batch_types.Batch) -> LossOutput:
+    def _shared_step(self, batch: batch_types.Batch) -> tuple[LossOutput, ModelOutput]:
         pred = self.model.forward(batch["model_input"]["coords"], batch["model_input"]["images"])
         loss = self.loss.forward(pred, batch["target"])
-
-        return loss
+        return loss, pred
 
     def training_step(self, batch: batch_types.Batch, batch_idx: int) -> LSOutput:
-        loss = self._shared_step(batch)
-        out: LSOutput = {"losses": loss, "loss": loss["total"]}
+        loss, model_output = self._shared_step(batch)
+        pred_cls = ClassHead.get_classes(model_output["cls"])
+        pred: tokens.TokenBatch = {
+            "cls": pred_cls,
+            "coord": model_output["coord"],
+            "padding_mask": batch["model_input"]["coords"]["padding_mask"],
+        }
+
+        out: LSOutput = {"losses": loss, "loss": loss["total"], "pred": pred}
+        self.log("train_loss", loss["total"], batch_size=len(batch["idx"]), prog_bar=True)
 
         return out
 
     def validation_step(self, batch: batch_types.Batch, batch_idx: int) -> LSOutput:
-        loss = self._shared_step(batch)
-        out: LSOutput = {"losses": loss, "loss": loss["total"]}
-        self.log("valid_loss", loss["total"])  # To use with the checkpointing callback
+        loss, _ = self._shared_step(batch)
+        inf_output = self.model.inference(batch["model_input"]["images"])
+        out: LSOutput = {"losses": loss, "loss": loss["total"], "pred": inf_output}
+        self.log("valid_loss", loss["total"], batch_size=len(batch["idx"]), prog_bar=True)
 
         return out
 

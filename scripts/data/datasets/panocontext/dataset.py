@@ -26,6 +26,9 @@ class PanoContextDataset(DatasetBase):
         gt_layout = processing.read_room_layout_2d(sample)
         assert gt_layout is not None
 
+        lowest_x_idx = torch.argmin(gt_layout[:, 0])
+        gt_layout = torch.cat([gt_layout[lowest_x_idx + 1 :], gt_layout[: lowest_x_idx + 1]]).flip(dims=(0,))
+
         layout_tokens = [tokens.Token.coo(coord) for coord in gt_layout]
         input_seq = [tokens.Token.eos()] + layout_tokens
         gt_seq = layout_tokens + [tokens.Token.eos()]
@@ -33,6 +36,7 @@ class PanoContextDataset(DatasetBase):
         gt_seq_torch = tokens.pack_tokens(gt_seq)
 
         image = cv2.imread(str(self.dataset_dir / sample["image_path"]))
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         image = cv2.resize(image, self.image_size_wh)
         torch_image = torch.from_numpy(image).clone().permute(2, 0, 1).float() / 255.0
 

@@ -4,6 +4,8 @@ from data.datasets.panocontext.dataset import PanoContextDataset
 from lightning_system import LSConfig
 
 DATASET_DIR = Path("/workspace/datasets")
+TEMP_OUTPUT_DIR = Path("/workspace/outputs")
+
 TRAIN_DATASET = PanoContextDataset
 VALID_DATASET = PanoContextDataset
 IMAGE_HW: tuple[int, int] = (384, 384)

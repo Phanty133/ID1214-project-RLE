@@ -22,17 +22,17 @@ class Token:
     coord: Float32[Tensor, "2"]
 
     @staticmethod
-    def eos() -> "Token":
-        return Token(TokenCls.EOS, torch.tensor([0.0, 0.0], dtype=torch.float32))
+    def eos(device: torch.device | None = None) -> "Token":
+        return Token(TokenCls.EOS, torch.tensor([0.0, 0.0], dtype=torch.float32, device=device))
 
     @staticmethod
-    def pad() -> "Token":
-        return Token(TokenCls.PAD, torch.tensor([0.0, 0.0], dtype=torch.float32))
+    def pad(device: torch.device | None = None) -> "Token":
+        return Token(TokenCls.PAD, torch.tensor([0.0, 0.0], dtype=torch.float32, device=device))
 
     @staticmethod
-    def coo(coord: Float32[Tensor, "2"] | tuple[float, float]) -> "Token":
+    def coo(coord: Float32[Tensor, "2"] | tuple[float, float], device: torch.device | None = None) -> "Token":
         if isinstance(coord, tuple):
-            coord = torch.tensor(coord, dtype=torch.float32)
+            coord = torch.tensor(coord, dtype=torch.float32, device=device)
 
         return Token(TokenCls.COO, coord)
 
@@ -43,7 +43,11 @@ class TokenSequence(TypedDict):
 
 
 def pack_tokens(tokens: list[Token]) -> TokenSequence:
-    cls = torch.tensor([token.cls.value for token in tokens], dtype=torch.int32)
+    if len(tokens) == 0:
+        raise ValueError("Cannot pack empty token sequence")
+
+    device = tokens[0].coord.device
+    cls = torch.tensor([token.cls.value for token in tokens], dtype=torch.int32, device=device)
     coord = torch.stack([token.coord for token in tokens])
     seq: TokenSequence = {
         "cls": cls,
