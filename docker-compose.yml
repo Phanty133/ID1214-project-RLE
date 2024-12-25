@@ -19,7 +19,7 @@ services:
               capabilities: [gpu]
 
     volumes:
-      - ./:/workspace
+      - ./:/workspace:cached
       # - ${HOME}/.clearml/cache:/home/user/.clearml/cache
       - ${HOME}/clearml.conf:/home/user/clearml.conf
       - /content/files/.clearml:/content/files/.clearml
