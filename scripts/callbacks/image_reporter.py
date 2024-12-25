@@ -1,5 +1,6 @@
 import itertools
 
+import clearml
 import config
 import cv2
 import numpy as np
@@ -41,17 +42,23 @@ class ImageReporter(Callback):
 
         self.max_samples = max_samples
         self._cur_samples = 0
-        self._task = None
+        self._task: clearml.Task | None = clearml.Task.current_task()
 
     def _report_image(self, idx: str, image: np.ndarray, trainer: Trainer) -> None:
+        series = "train" if trainer.training else "valid"
+
         if self._task is None:
-            subdir = "train" if trainer.training else "valid"
-            output_dir = config.TEMP_OUTPUT_DIR / "images" / subdir / str(trainer.current_epoch)
+            output_dir = config.TEMP_OUTPUT_DIR / "images" / series / str(trainer.current_epoch)
             output_dir.mkdir(parents=True, exist_ok=True)
             image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
             cv2.imwrite(str(output_dir / f"{idx}.png"), image)
         else:
-            raise NotImplementedError
+            self._task.logger.report_image(
+                series=f"{idx}",
+                title=f"images:{series}",
+                iteration=trainer.current_epoch,
+                image=image,
+            )
 
     def _on_batch_end(self, trainer: Trainer, batch: batch_types.Batch, outputs: LSOutput) -> None:
         if self._cur_samples >= self.max_samples:

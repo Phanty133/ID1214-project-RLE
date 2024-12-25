@@ -1,3 +1,4 @@
+import clearml
 import config
 import lightning
 import torch
@@ -8,6 +9,8 @@ from scripts.callbacks import image_reporter
 
 
 def train():
+    clearml.Task.init(project_name=config.CLEARML_PROJECT_NAME, task_name=config.CLEARML_TASK_NAME)
+
     torch.set_float32_matmul_precision("medium")
     ls = LightningSystem(config.LS_CONFIG)
     dm = DataModule()

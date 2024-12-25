@@ -21,3 +21,6 @@ LS_CONFIG: LSConfig = {
 }
 MAX_EPOCHS: int | None = 100
 NUM_GPUS: int = 1
+
+CLEARML_PROJECT_NAME = "RLE"
+CLEARML_TASK_NAME = "PanoContextOverfitTest"
