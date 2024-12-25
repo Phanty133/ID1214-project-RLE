@@ -1,0 +1,57 @@
+from typing import TypedDict, cast
+
+import torch
+import torch.nn as nn
+from data import batch_types
+from jaxtyping import Float32
+from model.decoder import Decoder
+from model.encoder import Encoder
+from model.heads import ClassHead, CoordHead
+from model.token_embeddings import TokenEmbeddings
+from torch import Tensor
+
+
+class ModelOutput(TypedDict):
+    cls: Float32[Tensor, "B N"]
+    coord: Float32[Tensor, "B N 2"]
+
+
+class ModelHeads(TypedDict):
+    cls: ClassHead
+    coord: CoordHead
+
+
+class Model(nn.Module):
+    def __init__(self, embed_size=768, compile=False):
+        self.embed_size = embed_size
+        self.encoder = Encoder(embed_size)
+        self.decoder = Decoder(embed_size)
+        self.embeds = TokenEmbeddings(embed_size)
+        self.heads = cast(
+            ModelHeads, nn.ModuleDict({"cls": ClassHead(embed_size), "coord": CoordHead(embed_size)})
+        )
+
+        if compile:
+            self.embeds = cast(TokenEmbeddings, torch.compile(self.embeds, fullgraph=True))
+            self.heads = cast(ModelHeads, torch.compile(self.heads, fullgraph=True))
+            self.encoder = cast(Encoder, torch.compile(self.encoder, fullgraph=True))
+            # self.decoder = torch.compile(self.decoder, fullgraph=True) # TODO: might be a bit finnicky
+
+    def forward_encoder(self, image: Float32[Tensor, "B C H W"]) -> Float32[Tensor, "B N_enc C_enc"]:
+        return self.encoder.forward(image)
+
+    def forward_decoder(
+        self, tokens: batch_types.ModelInputBatch, enc_out: Float32[Tensor, "B N_enc C_enc"]
+    ) -> ModelOutput:
+        embeds = self.embeds.forward(tokens["coords"])
+        dec_out = self.decoder.forward(embeds, enc_out)
+        cls = self.heads["cls"].forward(dec_out)
+        coord = self.heads["coord"].forward(dec_out)
+
+        return {"cls": cls, "coord": coord}
+
+    def forward(self, tokens: batch_types.ModelInputBatch, image: Float32[Tensor, "B C H W"]) -> ModelOutput:
+        enc_out = self.forward_encoder(image)
+        dec_out = self.forward_decoder(tokens, enc_out)
+
+        return dec_out
