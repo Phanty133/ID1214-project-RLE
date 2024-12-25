@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import TypedDict
+from typing import TypedDict, cast
 
 import torch
 import torch.nn.functional as F
@@ -42,7 +42,12 @@ class TokenSequence(TypedDict):
 def pack_tokens(tokens: list[Token]) -> TokenSequence:
     cls = torch.tensor([token.cls.value for token in tokens], dtype=torch.int32)
     coord = torch.stack([token.coord for token in tokens])
-    return TokenSequence(cls, coord)
+    seq: TokenSequence = {
+        "cls": cls,
+        "coord": coord,
+    }
+
+    return seq
 
 
 class TokenBatch(TypedDict):
@@ -53,21 +58,28 @@ class TokenBatch(TypedDict):
 
 def pack_token_sequences(sequences: list[TokenSequence] | list[list[Token]]) -> TokenBatch:
     if isinstance(sequences[0], list):
-        sequences = [TokenSequence.pack_tokens(tokens) for tokens in sequences]
+        sequences = cast(list[list[Token]], sequences)
+        sequences = [pack_tokens(tokens) for tokens in sequences]
 
-    max_seq_len = max(len(seq.cls) for seq in sequences)
+    sequences = cast(list[TokenSequence], sequences)
+    max_seq_len = max(len(seq["cls"]) for seq in sequences)
     out_cls: list[Int32[Tensor, " N"]] = []
     out_coord: list[Float32[Tensor, "N 2"]] = []
 
     for seq in sequences:
-        num_padded = max_seq_len - len(seq.cls)
-        cls = F.pad(seq.cls, (0, num_padded))
-        coord = F.pad(seq.coord, (0, 0, 0, num_padded))
+        num_padded = max_seq_len - len(seq["cls"])
+        cls = F.pad(seq["cls"], (0, num_padded))
+        coord = F.pad(seq["coord"], (0, 0, 0, num_padded))
         out_cls.append(cls)
         out_coord.append(coord)
 
     cls = torch.stack(out_cls)
     coord = torch.stack(out_coord)
     padding_mask = (cls == TokenCls.PAD.value).float() * -torch.inf
+    batch: TokenBatch = {
+        "cls": cls,
+        "coord": coord,
+        "padding_mask": padding_mask,
+    }
 
-    return TokenBatch(cls, coord, padding_mask)
+    return batch

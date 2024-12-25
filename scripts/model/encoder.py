@@ -1,7 +1,10 @@
+from typing import cast
+
 import torch.nn as nn
 from jaxtyping import Float32
-from torch import Tensor
+from torch import FloatTensor, Tensor
 from transformers import Swinv2Config, Swinv2Model
+from transformers.models.swinv2.modeling_swinv2 import Swinv2ModelOutput
 
 
 class Encoder(nn.Module):
@@ -20,7 +23,7 @@ class Encoder(nn.Module):
         return self.img_encoder.config  # To cast to Swinv2Config
 
     def forward(self, image: Float32[Tensor, "B C H W"]) -> Float32[Tensor, "B N C"]:
-        img_enc_out = self.img_encoder.forward(image)
+        img_enc_out = cast(Swinv2ModelOutput, self.img_encoder.forward(cast(FloatTensor, image)))
         img_emb = self.reproj(img_enc_out.last_hidden_state)
         img_emb = self.norm(img_emb)
 

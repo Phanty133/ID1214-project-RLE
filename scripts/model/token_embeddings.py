@@ -17,8 +17,8 @@ class TokenEmbeddings(nn.Module):
         return len(tokens.TokenCls)
 
     def forward(self, tokens: tokens.TokenBatch) -> Float32[Tensor, "B N C"]:
-        cls_emb = self.cls_embed(tokens.cls)
-        coo_emb = self.coo_embed(tokens.coord)
+        cls_emb = self.cls_embed(tokens["cls"])
+        coo_emb = self.coo_embed(tokens["coord"])
         emb = torch.cat([cls_emb, coo_emb], dim=-1)
         emb = self.reembed(emb)
         emb = self.norm(emb)

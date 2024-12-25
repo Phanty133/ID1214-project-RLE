@@ -10,7 +10,7 @@ class ClassHead(nn.Module):
         self.head = nn.Linear(in_channels, self.num_classes)
 
     @property
-    def num_classes() -> int:
+    def num_classes(self) -> int:
         return len(TokenCls)
 
     @staticmethod

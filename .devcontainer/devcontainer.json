@@ -29,7 +29,8 @@
 				"charliermarsh.ruff",
 				"redhat.vscode-yaml",
 				"ms-python.python",
-				"elazarcoh.simply-view-image-for-python-debugging"
+				"elazarcoh.simply-view-image-for-python-debugging",
+				"tamasfe.even-better-toml"
 			]
 		}
 	},

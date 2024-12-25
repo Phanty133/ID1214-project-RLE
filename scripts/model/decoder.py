@@ -17,7 +17,7 @@ class Decoder(nn.Module):
             norm_first=True,
             bias=False,
         )
-        self.decoder = nn.TransformerDecoder(num_layers, dec_layer, norm=nn.LayerNorm(embed_dim))
+        self.decoder = nn.TransformerDecoder(dec_layer, num_layers, norm=nn.LayerNorm(embed_dim))
         self.pos_embeds = nn.Embedding(max_len, embed_dim)  # TODO: Replace with AliBi or RoPE
 
     def forward(
