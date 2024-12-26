@@ -78,7 +78,7 @@ class Model(nn.Module):
             coords["coord"] = torch.cat([coords["coord"], last_coord.unsqueeze(1)], dim=1)
             coords["cls"] = torch.cat([coords["cls"], last_cls.unsqueeze(1)], dim=1)
             coords["padding_mask"] = torch.cat(
-                [coords["padding_mask"], torch.where(seqs_done, -torch.inf, 0.0).unsqueeze(0)], dim=1
+                [coords["padding_mask"], torch.where(seqs_done, -torch.inf, 0.0).unsqueeze(1)], dim=1
             )
 
             seqs_done = seqs_done | (last_cls == tokens.TokenCls.EOS.value)

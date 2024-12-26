@@ -1,4 +1,4 @@
-from typing import TypedDict
+from typing import NotRequired, TypedDict
 
 import torch
 from data import batch_types, tokens
@@ -14,6 +14,9 @@ class LSConfig(TypedDict):
     cls_coef: float
     coord_coef: float
     initial_lr: float
+    decay_epochs: NotRequired[int]
+    lr_min: NotRequired[float]
+    cos_annealing: bool
     compile_model: bool
 
 
@@ -32,8 +35,27 @@ class LightningSystem(LightningModule):
         self.config = config
 
     def configure_optimizers(self):
-        # TODO: Cosine or poly learning rate decay?
-        return torch.optim.AdamW(self.model.parameters(), lr=self.config["initial_lr"])
+        optimizer = torch.optim.AdamW(self.model.parameters(), lr=self.config["initial_lr"])
+
+        if not self.config.get("cos_annealing", False):
+            return optimizer
+
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+            optimizer, T_max=self.config.get("decay_epochs", 10), eta_min=self.config.get("lr_min", 0)
+        )
+        scheduler = torch.optim.lr_scheduler.SequentialLR(
+            optimizer,
+            schedulers=[
+                scheduler,
+                torch.optim.lr_scheduler.ConstantLR(
+                    optimizer,
+                    factor=self.config.get("lr_min", 0) / self.config["initial_lr"],
+                    total_iters=10000,
+                ),
+            ],
+            milestones=[self.config.get("decay_epochs", 10)],
+        )
+        return [optimizer], [scheduler]
 
     def _shared_step(self, batch: batch_types.Batch) -> tuple[LossOutput, ModelOutput]:
         pred = self.model.forward(batch["model_input"]["coords"], batch["model_input"]["images"])

@@ -5,7 +5,7 @@ import torch
 from data.data_module import DataModule
 from lightning_system import LightningSystem
 
-from scripts.callbacks import image_reporter, loss_reporter
+from scripts.callbacks import image_reporter, loss_reporter, lr_reporter
 
 
 def train():
@@ -29,6 +29,7 @@ def train():
         callbacks=[
             image_reporter.ImageReporter(max_samples=50),
             loss_reporter.LossReporter(),
+            lr_reporter.LRReporter(),
         ],
     )
     trainer.fit(ls, dm)

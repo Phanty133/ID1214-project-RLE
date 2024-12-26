@@ -17,9 +17,12 @@ LS_CONFIG: LSConfig = {
     "cls_coef": 5e-4,
     "coord_coef": 1.0,
     "initial_lr": 5e-5,
+    "decay_epochs": 100,
+    "lr_min": 1e-6,
+    "cos_annealing": True,
     "compile_model": False,
 }
-MAX_EPOCHS: int | None = 100
+MAX_EPOCHS: int | None = None
 NUM_GPUS: int = 1
 
 CLEARML_PROJECT_NAME = "RLE"
