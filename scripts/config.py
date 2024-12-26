@@ -17,7 +17,7 @@ LS_CONFIG: LSConfig = {
     "cls_coef": 5e-4,
     "coord_coef": 1.0,
     "initial_lr": 5e-5,
-    "decay_epochs": 100,
+    "decay_epochs": 50,
     "lr_min": 1e-6,
     "cos_annealing": True,
     "compile_model": False,
