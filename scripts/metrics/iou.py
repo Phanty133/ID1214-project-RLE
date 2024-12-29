@@ -10,16 +10,13 @@ from torch import Tensor
 log = logging.getLogger(__name__)
 
 
-def topdown_iou(
-    pred_object: tokens.TokenSequence, target_object: tokens.TokenSequence, device: torch.device | None = None
-) -> torch.Tensor:
+def topdown_iou(pred_object: tokens.TokenSequence, target_object: tokens.TokenSequence) -> torch.Tensor:
     pred_coords = tokens.get_seq_coordinates(pred_object).cpu().numpy()
     target_coords = tokens.get_seq_coordinates(target_object).cpu().numpy()
 
     # TODO: Correctly reproject to topdown here
 
-    if device is None:
-        device = torch.get_default_device()
+    device = target_coords.device
 
     if pred_coords.shape[0] < 3 or target_coords.shape[0] < 3:
         return torch.tensor(0.0, dtype=torch.float32, device=device)
@@ -77,7 +74,7 @@ class IoU(tm.Metric):
         self.iou: list[Tensor]
 
     def update(self, preds: tokens.TokenSequence, targets: tokens.TokenSequence):
-        iou = topdown_iou(preds, targets, device=self.device)
+        iou = topdown_iou(preds, targets)
 
         self.iou.append(iou)
 
