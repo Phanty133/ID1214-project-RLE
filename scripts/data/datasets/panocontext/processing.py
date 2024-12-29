@@ -93,6 +93,7 @@ def read_room_layout_2d(sample: PanoContextSample) -> Float32[Tensor, "N 2"] | N
         layout = torch.tensor(layout_raw, dtype=torch.float32)
         layout = layout / img_wh
         layout = layout[layout[:, 1] > 0.5]
+        layout = layout[layout[:, 0].argsort()]
 
         return layout
 

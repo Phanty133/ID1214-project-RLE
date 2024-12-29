@@ -5,7 +5,7 @@ import torch
 from data.data_module import DataModule
 from lightning_system import LightningSystem
 
-from scripts.callbacks import image_reporter, loss_reporter, lr_reporter
+from scripts.callbacks import image_reporter, loss_reporter, lr_reporter, metric_reporter
 
 
 def train():
@@ -30,7 +30,9 @@ def train():
             image_reporter.ImageReporter(max_samples=50),
             loss_reporter.LossReporter(),
             lr_reporter.LRReporter(),
+            metric_reporter.MetricReporter(),
         ],
+        overfit_batches=0.025,
     )
     trainer.fit(ls, dm)
 

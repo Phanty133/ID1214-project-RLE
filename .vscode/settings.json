@@ -8,5 +8,7 @@
         }
     },
     "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
-    "python.analysis.typeCheckingMode": "standard"
+    "python.analysis.typeCheckingMode": "standard",
+    "python.analysis.autoImportCompletions": true,
+    "python.analysis.indexing": true
 }

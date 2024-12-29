@@ -14,8 +14,12 @@ class DataModule(LightningDataModule):
         self.valid_dataset: DatasetBase | None = None
 
     def prepare_data(self) -> None:
-        self.train_dataset = config.TRAIN_DATASET(config.DATASET_DIR, config.IMAGE_HW)
-        self.valid_dataset = config.VALID_DATASET(config.DATASET_DIR, config.IMAGE_HW)
+        self.train_dataset = config.TRAIN_DATASET(
+            config.DATASET_DIR, config.IMAGE_HW, apply_augms=True, split="train"
+        )
+        self.valid_dataset = config.VALID_DATASET(
+            config.DATASET_DIR, config.IMAGE_HW, apply_augms=False, split="val"
+        )
 
         rich.print("[bold green]Train dataset size[/bold green]:", len(self.train_dataset))
         rich.print("[bold green]Valid dataset size[/bold green]:", len(self.valid_dataset))

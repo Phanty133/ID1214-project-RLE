@@ -2,12 +2,13 @@ from pathlib import Path
 from typing import Literal
 
 import cv2
+import orjson
 from data import batch_types
 from data.datasets.dataset_base import DatasetBase
-from data.datasets.panocontext import processing
+from data.datasets.zind import processing
 
 
-class PanoContextDataset(DatasetBase):
+class ZindDataset(DatasetBase):
     def __init__(
         self,
         dataset_dir: Path,
@@ -17,20 +18,23 @@ class PanoContextDataset(DatasetBase):
     ):
         super().__init__(dataset_dir, image_size_wh, apply_augms, split)
 
-        if not (dataset_dir / "panocontext").exists():
-            processing.download_panocontext(dataset_dir)
+        zind_dir = processing.get_zind_dir(dataset_dir)
+
+        if not zind_dir.exists():
+            raise NotImplementedError("Download Zind dataset")
 
         self.dataset_dir = dataset_dir
         self.data = list(processing.iter_dataset(dataset_dir))
+
+        partitions = orjson.loads((zind_dir / "zind_partition.json").read_bytes())
+        self.data = [sample for sample in self.data if sample["floorplan_id"] in partitions[self.split]]
 
     def __len__(self) -> int:
         return len(self.data)
 
     def __getitem__(self, index: int) -> batch_types.Sample:
         sample = self.data[index]
-        gt_layout = processing.read_room_layout_2d(sample)
         image = cv2.imread(str(self.dataset_dir / sample["image_path"]))
-        assert gt_layout is not None
+        sample = self._process_sample(sample["id"], sample["layout_2d"], image)
 
-        sample = self._process_sample(sample["id"], gt_layout, image)
         return sample

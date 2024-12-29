@@ -65,11 +65,11 @@ class MHA(nn.MultiheadAttention):
             key_padding_mask = key_padding_mask.view(B, 1, -1).expand(-1, N, -1)
             mask = mask | key_padding_mask
 
-        return self.attn.forward(query, key, mask=mask), None
+        return self.attn.forward(query, key, mask=~mask), None
 
 
 class Decoder(nn.Module):
-    def __init__(self, embed_dim: int, num_layers: int, num_heads: int, max_len: int = 64, rope=True):
+    def __init__(self, embed_dim: int, num_layers: int, num_heads: int, max_len: int = 64, rope=False):
         super(Decoder, self).__init__()
         dec_layer = nn.TransformerDecoderLayer(
             embed_dim,
@@ -84,10 +84,11 @@ class Decoder(nn.Module):
 
         self.rope = rope
 
-        if not self.rope:
+        if self.rope:
+            dec_layer.self_attn = MHA(embed_dim, num_heads, rope=self.rope)
+        else:
             self.pos_embeds = nn.Embedding(max_len, embed_dim)
 
-        dec_layer.self_attn = MHA(embed_dim, num_heads, rope=self.rope)
         self.decoder = nn.TransformerDecoder(dec_layer, num_layers, norm=nn.LayerNorm(embed_dim))
 
     def forward(

@@ -19,6 +19,8 @@ dependencies = [
     "tensorboardx>=2.6.2.2",
     "torchtune>=0.5.0",
     "torchao>=0.7.0",
+    "torchmetrics>=1.6.0",
+    "shapely>=2.0.6",
 ]
 
 [tool.ruff]
