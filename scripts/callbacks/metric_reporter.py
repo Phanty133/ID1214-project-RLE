@@ -26,12 +26,9 @@ class MetricReporter(Callback):
 
     def update_metrics(self, batch: batch_types.Batch, outputs: ls.LSOutput):
         samples = batch_types.split_batch(batch)
+        preds = tokens.split_token_batch(outputs["pred"])
 
-        for idx, sample in enumerate(samples):
-            pred: tokens.TokenSequence = {
-                "cls": outputs["pred"]["cls"][idx],
-                "coord": outputs["pred"]["coord"][idx],
-            }
+        for sample, pred in zip(samples, preds, strict=True):
             for metric in self.metrics:
                 metric.update(pred, sample["target"])
 

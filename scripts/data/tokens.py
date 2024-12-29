@@ -57,6 +57,21 @@ def pack_tokens(tokens: list[Token]) -> TokenSequence:
     return seq
 
 
+def get_seq_coordinates(tokens: TokenSequence) -> Float32[Tensor, "N 2"]:
+    eos_mask = tokens["cls"] == TokenCls.EOS.value
+
+    if eos_mask.any():
+        first_eos_idx = eos_mask.nonzero(as_tuple=True)[0][0]
+        segment_coords = tokens["coord"][:first_eos_idx]
+        segment_cls = tokens["cls"][:first_eos_idx]
+    else:
+        segment_coords = tokens["coord"]
+        segment_cls = tokens["cls"]
+
+    coords = segment_coords[segment_cls == TokenCls.COO.value]
+    return coords
+
+
 class TokenBatch(TypedDict):
     cls: Int32[Tensor, "B N"]
     coord: Float32[Tensor, "B N 2"]
@@ -90,3 +105,16 @@ def pack_token_sequences(sequences: list[TokenSequence] | list[list[Token]]) -> 
     }
 
     return batch
+
+
+def split_token_batch(batch: TokenBatch) -> list[TokenSequence]:
+    padding_mask = batch["padding_mask"] == 0
+    out: list[TokenSequence] = [
+        {
+            "cls": batch["cls"][idx][padding_mask[idx]],
+            "coord": batch["coord"][idx][padding_mask[idx]],
+        }
+        for idx in range(batch["cls"].shape[0])
+    ]
+
+    return out

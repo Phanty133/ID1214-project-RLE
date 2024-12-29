@@ -36,13 +36,15 @@ def split_batch(batch: Batch) -> list[Sample]:
     out: list[Sample] = []
 
     for idx, sample_idx in enumerate(batch["idx"]):
+        input_padding_mask = batch["model_input"]["coords"]["padding_mask"][idx] == 0
         input_seq: tokens.TokenSequence = {
-            "cls": batch["model_input"]["coords"]["cls"][idx],
-            "coord": batch["model_input"]["coords"]["coord"][idx],
+            "cls": batch["model_input"]["coords"]["cls"][idx][input_padding_mask],
+            "coord": batch["model_input"]["coords"]["coord"][idx][input_padding_mask],
         }
+        target_padding_mask = batch["target"]["padding_mask"][idx] == 0
         target_seq: tokens.TokenSequence = {
-            "cls": batch["target"]["cls"][idx],
-            "coord": batch["target"]["coord"][idx],
+            "cls": batch["target"]["cls"][idx][target_padding_mask],
+            "coord": batch["target"]["coord"][idx][target_padding_mask],
         }
 
         out.append(

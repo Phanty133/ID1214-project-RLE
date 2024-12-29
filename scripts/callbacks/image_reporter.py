@@ -15,7 +15,7 @@ from utils import pano
 def draw_tokens(
     img: UInt8[np.ndarray, "H W C"], layout: tokens.TokenSequence, color: tuple[int, int, int]
 ) -> UInt8[np.ndarray, "H W C"]:
-    corners = layout["coord"][layout["cls"] == tokens.TokenCls.COO.value].cpu().detach().float().numpy()
+    corners = tokens.get_seq_coordinates(layout).cpu().detach().float().numpy()
     pano_polyline = pano.get_pano_poly_contour(corners)
     pano_polyline *= np.array([img.shape[1], img.shape[0]])
     pano_polyline = pano_polyline.astype(np.int32)
@@ -74,17 +74,15 @@ class ImageReporter(Callback):
         if self._cur_samples >= self.max_samples:
             return
 
-        for idx, sample in enumerate(batch_types.split_batch(batch)):
+        preds = tokens.split_token_batch(outputs["pred"])
+
+        for idx, (sample, pred) in enumerate(zip(batch_types.split_batch(batch), preds, strict=True)):
             if self._cur_samples >= self.max_samples:
                 break
 
-            pred_seq: tokens.TokenSequence = {
-                "cls": outputs["pred"]["cls"][idx],
-                "coord": outputs["pred"]["coord"][idx],
-            }
             image = sample["image"]
             image = draw_tokens(image, sample["target"], (0, 255, 0))
-            image = draw_tokens(image, pred_seq, (255, 0, 0))
+            image = draw_tokens(image, pred, (255, 0, 0))
             image = overlay_metadata(image, sample["metadata"])
 
             self._report_image(batch["idx"][idx], image, trainer)

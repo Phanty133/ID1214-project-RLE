@@ -13,9 +13,10 @@ log = logging.getLogger(__name__)
 def topdown_iou(
     pred_object: tokens.TokenSequence, target_object: tokens.TokenSequence, device: torch.device | None = None
 ) -> torch.Tensor:
-    # TODO: Investigate whether the IoU should be topdown or pano?
-    pred_coords = pred_object["coord"][pred_object["cls"] == tokens.TokenCls.COO.value].cpu().numpy()
-    target_coords = target_object["coord"][target_object["cls"] == tokens.TokenCls.COO.value].cpu().numpy()
+    pred_coords = tokens.get_seq_coordinates(pred_object).cpu().numpy()
+    target_coords = tokens.get_seq_coordinates(target_object).cpu().numpy()
+
+    # TODO: Correctly reproject to topdown here
 
     if device is None:
         device = torch.get_default_device()
