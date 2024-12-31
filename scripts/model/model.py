@@ -84,4 +84,9 @@ class Model(nn.Module):
             seqs_done = seqs_done | (last_cls == tokens.TokenCls.EOS.value)
             cur_idx += 1
 
+        # strip initial EOS
+        coords["coord"] = coords["coord"][:, 1:]
+        coords["cls"] = coords["cls"][:, 1:]
+        coords["padding_mask"] = coords["padding_mask"][:, 1:]
+
         return coords
