@@ -3,6 +3,7 @@ import config
 import lightning
 import torch
 from data.data_module import DataModule
+from lightning.pytorch.callbacks import ModelCheckpoint
 from lightning_system import LightningSystem
 
 from scripts.callbacks import image_reporter, loss_reporter, lr_reporter, metric_reporter
@@ -31,6 +32,7 @@ def train():
             loss_reporter.LossReporter(),
             lr_reporter.LRReporter(),
             metric_reporter.MetricReporter(),
+            ModelCheckpoint(monitor="valid_loss", mode="min", save_top_k=1, save_last=True, filename="best"),
         ],
         overfit_batches=0.025,
     )
