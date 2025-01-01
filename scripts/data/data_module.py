@@ -5,6 +5,8 @@ from data.datasets.dataset_base import DatasetBase
 from lightning import LightningDataModule
 from torch.utils.data import DataLoader
 
+from scripts.data.datasets.panocontext.dataset import PanoContextDataset
+
 
 class DataModule(LightningDataModule):
     def __init__(self) -> None:
@@ -14,6 +16,13 @@ class DataModule(LightningDataModule):
         self.valid_dataset: DatasetBase | None = None
 
     def prepare_data(self) -> None:
+        if isinstance(self.train_dataset, PanoContextDataset):
+            PanoContextDataset(config.DATASET_DIR, config.IMAGE_HW, split="train", apply_augms=True)
+
+        if isinstance(self.valid_dataset, PanoContextDataset):
+            PanoContextDataset(config.DATASET_DIR, config.IMAGE_HW, split="val", apply_augms=False)
+
+    def setup(self, stage: str) -> None:
         self.train_dataset = config.TRAIN_DATASET(
             config.DATASET_DIR, config.IMAGE_HW, apply_augms=True, split="train"
         )
