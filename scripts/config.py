@@ -1,13 +1,13 @@
 from pathlib import Path
 
-from data.datasets.zind.dataset import ZindDataset
+from data.datasets.panocontext.dataset import PanoContextDataset 
 from lightning_system import LSConfig
 
-DATASET_DIR = Path("/workspace/datasets")
-TEMP_OUTPUT_DIR = Path("/workspace/outputs")
+DATASET_DIR = Path("./workspace/datasets")
+TEMP_OUTPUT_DIR = Path("./workspace/outputs")
 
-TRAIN_DATASET = ZindDataset
-VALID_DATASET = ZindDataset
+TRAIN_DATASET = PanoContextDataset
+VALID_DATASET = PanoContextDataset
 IMAGE_HW: tuple[int, int] = (384, 384)
 BATCH_SIZE: int = 8
 GRAD_ACC = 6

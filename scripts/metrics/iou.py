@@ -18,6 +18,7 @@ def topdown_iou(
 
     # TODO: Correctly reproject to topdown here
 
+
     if device is None:
         device = torch.get_default_device()
 

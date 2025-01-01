@@ -2,6 +2,7 @@ from typing import Literal
 
 import numpy as np
 from jaxtyping import Float32
+import shapely.geometry as sg
 
 MeridianPlane = Literal["xz", "yz", "-xz", "-yz"]
 
@@ -92,3 +93,70 @@ def get_pano_poly_contour(
     contour = np.mod(contour, [1, 1])
 
     return contour
+
+def get_topdown_coords( xyz: Float32[np.ndarray, "N 3"], meridian: MeridianPlane = "yz"
+) -> Float32[np.ndarray, "N 2"]:
+    return np.stack([x, z], axis=-1)
+    
+
+
+def uv_to_spherical( uv: Float32[np.ndarray, "N 2"], meridian: MeridianPlane = "yz"
+) -> Float32[np.ndarray, "N 3"]:
+    u = uv[0]
+    v = uv[1]
+    phi = np.pi * (v - 0.5)
+    theta = 2 * np.pi *(u-0.5)
+    r = 1
+    return np.stack([r, phi, theta], axis=-1)
+
+def uv_to_topdown(uv: Float32[np.ndarray, "N 2"], meridian: MeridianPlane = "yz"
+) -> Float32[np.ndarray, "N 3"]:
+    spherical = uv_to_spherical(uv)
+    cartesian = spherical_to_cartesian(spherical)
+    x = cartesian[0]
+    y = cartesian[1]
+    z = cartesian[2]
+
+    return [y, x]
+
+if __name__ == "__main__":
+
+    #Test for single point
+    uv = [0.75, 0.75]
+    sample_corner_uv =  np.stack(uv, axis=-1)
+    spherical = uv_to_spherical(sample_corner_uv)
+    cartesian = spherical_to_cartesian(spherical)
+
+    x = cartesian[0]
+    y = cartesian[1]
+    z = cartesian[2]
+    topdown = uv_to_topdown(uv)
+    print("UV: ", uv)
+    print("Spherical coord: ", spherical)
+    print("Cartesian coord: ", [x, y, z])
+    print("Topdown :", topdown)
+
+    #Test for multiple points
+    uv_arr = [[0.32, 0.41], [0.22, 0.73], [0.74, 0.25]]
+    uv_target_arr = [[0.34, 0.42], [0.25, 0.71], [0.75, 0.21]]
+
+    coord_arr = [] 
+    target_arr = [] 
+
+    for element in uv_arr:
+        td = uv_to_topdown(element)
+        coord_arr.append(td)
+
+    for element in uv_target_arr:
+        td = uv_to_topdown(element)
+        target_arr.append(td)
+
+    print("ORIGINAL POSITIONS", coord_arr)
+    print("TARGET POSITIONS", target_arr)
+
+    poly = sg.Polygon(coord_arr)
+    target_poly = sg.Polygon(target_arr)
+    intersection = poly.intersection(target_poly).area
+    union = poly.union(target_poly).area
+    iou = intersection / union
+    print("IOU", iou)

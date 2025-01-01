@@ -11,19 +11,20 @@ from utils import clearml_checkpoint_io
 
 
 def train():
-    clearml.Task.init(
-        project_name=config.CLEARML_PROJECT_NAME,
-        task_name=config.CLEARML_TASK_NAME,
-        reuse_last_task_id=False,
-        auto_connect_frameworks=False,
-        output_uri=True,
-    )
-
+    #clearml.Task.init(
+    #    project_name=config.CLEARML_PROJECT_NAME,
+    #    task_name=config.CLEARML_TASK_NAME,
+    #    reuse_last_task_id=False,
+    #    auto_connect_frameworks=False,
+    #    output_uri=True,
+    #)
+    
     torch.set_float32_matmul_precision("medium")
     ls = LightningSystem(config.LS_CONFIG)
     dm = DataModule()
 
     trainer = lightning.Trainer(
+        accelerator="cpu",
         max_epochs=config.MAX_EPOCHS,
         devices=config.NUM_GPUS,
         precision="bf16-mixed",
