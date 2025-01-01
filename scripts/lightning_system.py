@@ -80,7 +80,7 @@ class LightningSystem(LightningModule):
         loss, _ = self._shared_step(batch)
         inf_output = self.model.inference(batch["model_input"]["images"])
         out: LSOutput = {"losses": loss, "loss": loss["total"], "pred": inf_output}
-        self.log("valid_loss", loss["total"], batch_size=len(batch["idx"]), prog_bar=True)
+        self.log("valid_loss", loss["total"], batch_size=len(batch["idx"]), prog_bar=True, sync_dist=True)
 
         return out
 

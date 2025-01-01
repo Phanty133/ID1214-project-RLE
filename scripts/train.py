@@ -2,11 +2,12 @@ import clearml
 import config
 import lightning
 import torch
+from callbacks import image_reporter, loss_reporter, lr_reporter, metric_reporter
 from data.data_module import DataModule
 from lightning.pytorch.callbacks import ModelCheckpoint
+from lightning.pytorch.strategies import DDPStrategy
 from lightning_system import LightningSystem
-
-from scripts.callbacks import image_reporter, loss_reporter, lr_reporter, metric_reporter
+from utils import clearml_checkpoint_io
 
 
 def train():
@@ -34,7 +35,10 @@ def train():
             metric_reporter.MetricReporter(),
             ModelCheckpoint(monitor="valid_loss", mode="min", save_top_k=1, save_last=True, filename="best"),
         ],
-        overfit_batches=0.025,
+        strategy=DDPStrategy(
+            checkpoint_io=clearml_checkpoint_io.ClearMLCheckpointIO(),
+        ),
+        # overfit_batches=0.025,
     )
     trainer.fit(ls, dm)
 
