@@ -1,10 +1,11 @@
+import os
+import tempfile
 from logging import getLogger
 from pathlib import Path
 from typing import Any, Callable, override
 
 import clearml
 import torch
-from clearml.binding.frameworks import WeightsFileHandler
 from clearml.model import Framework
 from lightning.fabric.plugins import CheckpointIO
 from lightning.fabric.utilities.types import _PATH
@@ -15,6 +16,8 @@ log = getLogger(__name__)
 class ClearMLCheckpointIO(CheckpointIO):
     def __init__(self) -> None:
         super().__init__()
+
+        self._output_models: dict[str, clearml.OutputModel] = {}
 
     @override
     def save_checkpoint(
@@ -38,8 +41,23 @@ class ClearMLCheckpointIO(CheckpointIO):
         model_name = path.stem
         filename = path.name
 
-        WeightsFileHandler.create_output_model(
-            checkpoint, filename, Framework.pytorch, task, singlefile=True, model_name=model_name
+        if model_name not in self._output_models:
+            self._output_models[model_name] = clearml.OutputModel(
+                task=task,
+                name=model_name,
+                label_enumeration=task.get_labels_enumeration(),
+                framework=Framework.pytorch,
+                # base_model_id=in_model_id, TODO:
+            )
+
+        fd, temp_file = tempfile.mkstemp()
+        os.close(fd)
+        torch.save(checkpoint, temp_file)
+        self._output_models[model_name].update_weights(
+            weights_filename=str(temp_file),
+            auto_delete_file=True,
+            update_comment=False,
+            target_filename=filename,
         )
 
     @override

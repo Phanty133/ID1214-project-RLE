@@ -16,6 +16,7 @@ def train():
         task_name=config.CLEARML_TASK_NAME,
         reuse_last_task_id=False,
         auto_connect_frameworks=False,
+        output_uri=True,
     )
 
     torch.set_float32_matmul_precision("medium")
@@ -35,10 +36,8 @@ def train():
             metric_reporter.MetricReporter(),
             ModelCheckpoint(monitor="valid_loss", mode="min", save_top_k=1, save_last=True, filename="best"),
         ],
-        strategy=DDPStrategy(
-            checkpoint_io=clearml_checkpoint_io.ClearMLCheckpointIO(),
-        ),
-        # overfit_batches=0.025,
+        strategy=DDPStrategy(checkpoint_io=clearml_checkpoint_io.ClearMLCheckpointIO()),
+        # overfit_batches=0.01,
     )
     trainer.fit(ls, dm)
 
