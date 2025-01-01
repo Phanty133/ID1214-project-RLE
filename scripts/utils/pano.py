@@ -11,8 +11,8 @@ def spherical_to_cartesian(
     spherical: Float32[np.ndarray, "N 3"], meridian: MeridianPlane = "yz"
 ) -> Float32[np.ndarray, "N 3"]:
     r = spherical[..., 0]
-    azimuthal_angle = spherical[..., 1]
-    polar_angle = spherical[..., 2]
+    azimuthal_angle = spherical[1]
+    polar_angle = spherical[2]
 
     sin_polar = np.sin(polar_angle)
 
@@ -98,14 +98,15 @@ def get_topdown_coords( xyz: Float32[np.ndarray, "N 3"], meridian: MeridianPlane
 ) -> Float32[np.ndarray, "N 2"]:
     return np.stack([x, z], axis=-1)
     
-def uv_to_spherical( uv: Float32[np.ndarray, "N 2"], meridian: MeridianPlane = "yz"
+def uv_to_spherical(cameraHeight, uv: Float32[np.ndarray, "N 2"], meridian: MeridianPlane = "yz"
 ) -> Float32[np.ndarray, "N 3"]:
     u = uv[0]
     v = uv[1]
     phi = np.pi * (v)
     theta = 2 * np.pi *(u-0.5)
-    r = 1
-    return np.stack([r, phi, theta], axis=-1)
+    r = -cameraHeight/np.cos(phi)
+    #r = 1
+    return np.stack([r, theta, phi], axis=-1)
 
 def spherical_to_uv( spherical: Float32[np.ndarray, "N 3"], meridian: MeridianPlane = "yz"
 ) -> Float32[np.ndarray, "N 2"]:
@@ -113,15 +114,13 @@ def spherical_to_uv( spherical: Float32[np.ndarray, "N 3"], meridian: MeridianPl
     phi = spherical[2] 
     theta = spherical[1] 
     u = theta/(2*np.pi) + 0.5
-    v = (phi/np.pi) #v-axis might be inverted? v = 1- v?
-    print("theta", theta, "phi:" , phi)
-    print("u:", u, "v:" ,v)
+    v = (phi/np.pi) #v- axis might be inverted?
     return np.stack([u,v], axis=-1)
 
 
-def uv_to_topdown(uv: Float32[np.ndarray, "N 2"], meridian: MeridianPlane = "yz"
+def uv_to_topdown(cameraheight, uv: Float32[np.ndarray, "N 2"], meridian: MeridianPlane = "yz"
 ) -> Float32[np.ndarray, "N 3"]:
-    spherical = uv_to_spherical(uv)
+    spherical = uv_to_spherical( cameraheight, uv)
     cartesian = spherical_to_cartesian(spherical)
     x = cartesian[0]
     y = cartesian[1]
@@ -132,29 +131,31 @@ def uv_to_topdown(uv: Float32[np.ndarray, "N 2"], meridian: MeridianPlane = "yz"
 if __name__ == "__main__":
 
     #Test for single UV point
-    uv = [0.75, 0.75]
+    uv = [0.375     , 0.80408672]
     sample_corner_uv =  np.stack(uv, axis=-1)
-    spherical = uv_to_spherical(sample_corner_uv)
+    cameraheight = 2
+    spherical = uv_to_spherical(cameraheight, sample_corner_uv)
     cartesian = spherical_to_cartesian(spherical)
 
     x = cartesian[0]
     y = cartesian[1]
     z = cartesian[2]
-    topdown = uv_to_topdown(uv)
+    topdown = uv_to_topdown(cameraheight, uv)
     print("Original UV: ", uv)
     print("Spherical coord: ", spherical)
     print("Cartesian coord: ", [x, y, z])
-    print("Result, Topdown :", topdown)
 
     #Test for single cartesian coordinate
-    c = [1, 1 ,0]
-    print("Original Cartesian: ", c)
-    c_sphere = cartesian_to_spherical(c)
+    c = [-1, 1 ,0-cameraheight]
+    print("Original Cartesian: ", cartesian)
+    c_sphere = cartesian_to_spherical(cartesian)
+    print("Spherical coord: ", c_sphere)
+
     c_uv = spherical_to_uv(c_sphere)
     print("Final UV: ", c_uv)
 
     #Test for multiple UV points
-    uv_arr = [[0.75, 0.25], [0.75, 0.75], [0.75, 1.25], [ 0.75, -0.25]]
+    uv_arr = [[0.375     , 0.80408672],[0.625     , 0.80408672],[0.875     , 0.80408672],[0.125     , 0.80408672]]
     #uv_arr = [[0.32, 0.41], [0.22, 0.73], [0.74, 0.25]]
     uv_target_arr = [[0.34, 0.42], [0.25, 0.71], [0.75, 0.21]]
 
@@ -162,11 +163,11 @@ if __name__ == "__main__":
     target_arr = [] 
 
     for element in uv_arr:
-        td = uv_to_topdown(element)
+        td = uv_to_topdown(cameraheight, element)
         coord_arr.append(td)
 
     for element in uv_target_arr:
-        td = uv_to_topdown(element)
+        td = uv_to_topdown(cameraheight, element)
         target_arr.append(td)
 
     print("ORIGINAL UV POSITIONS", coord_arr)
