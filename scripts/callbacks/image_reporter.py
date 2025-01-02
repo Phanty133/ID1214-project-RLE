@@ -6,17 +6,19 @@ import config
 import cv2
 import numpy as np
 from data import batch_types, tokens
-from jaxtyping import UInt8
+from jaxtyping import Float, UInt8
 from lightning import Callback, LightningModule, Trainer
 from lightning_system import LSOutput
 from utils import pano
 
 
-def draw_tokens(
-    img: UInt8[np.ndarray, "H W C"], layout: tokens.TokenSequence, color: tuple[int, int, int]
+def draw_token_ndarray(
+    img: UInt8[np.ndarray, "H W C"],
+    layout_uv: Float[np.ndarray, "N 2"],
+    color: tuple[int, int, int],
+    label_corners: bool = True,
 ) -> UInt8[np.ndarray, "H W C"]:
-    corners = tokens.get_seq_coordinates(layout).cpu().detach().float().numpy()
-    pano_polyline = pano.get_pano_poly_contour(corners)
+    pano_polyline = pano.get_pano_poly_contour(layout_uv)
     pano_polyline *= np.array([img.shape[1], img.shape[0]])
     pano_polyline = pano_polyline.astype(np.int32)
 
@@ -26,14 +28,27 @@ def draw_tokens(
 
         img = cv2.line(img, tuple(pt_pair[0]), tuple(pt_pair[1]), color, 2)
 
-    corners_2d = (corners * np.array([img.shape[1], img.shape[0]])).astype(np.int32)
+    corners_2d = (layout_uv * np.array([img.shape[1], img.shape[0]])).astype(np.int32)
 
     for idx, pt in enumerate(corners_2d):
         img = cv2.circle(img, tuple(pt), 6, color, 2)
-        img = cv2.putText(
-            img, str(idx), tuple(pt + np.array([0, -10])), cv2.FONT_HERSHEY_SIMPLEX, 0.75, color, 2
-        )
 
+        if label_corners:
+            img = cv2.putText(
+                img, str(idx), tuple(pt + np.array([0, -10])), cv2.FONT_HERSHEY_SIMPLEX, 0.75, color, 2
+            )
+
+    return img
+
+
+def draw_token_sequence(
+    img: UInt8[np.ndarray, "H W C"],
+    layout: tokens.TokenSequence,
+    color: tuple[int, int, int],
+    label_corners: bool = True,
+) -> UInt8[np.ndarray, "H W C"]:
+    corners = tokens.get_seq_coordinates(layout).cpu().detach().float().numpy()
+    img = draw_token_ndarray(img, corners, color, label_corners)
     return img
 
 
@@ -81,8 +96,8 @@ class ImageReporter(Callback):
                 break
 
             image = sample["image"]
-            image = draw_tokens(image, sample["target"], (0, 255, 0))
-            image = draw_tokens(image, pred, (255, 0, 0))
+            image = draw_token_sequence(image, sample["target"], (0, 255, 0))
+            image = draw_token_sequence(image, pred, (255, 0, 0))
             image = overlay_metadata(image, sample["metadata"])
 
             self._report_image(batch["idx"][idx], image, trainer)
