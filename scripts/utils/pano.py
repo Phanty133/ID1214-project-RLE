@@ -126,7 +126,16 @@ def uv_to_topdown(cameraheight, uv: Float32[np.ndarray, "N 2"], meridian: Meridi
     y = cartesian[1]
     z = cartesian[2]
 
-    return [y, x]
+    return [x, y]
+
+def cartesian_to_topdown(cartesian: Float32[np.ndarray, "N 2"], meridian: MeridianPlane = "yz"
+) -> Float32[np.ndarray, "N 3"]:
+    x = cartesian[0]
+    y = cartesian[1]
+    z = cartesian[2]
+
+    return [x, y]
+
 
 if __name__ == "__main__":
 
@@ -155,9 +164,9 @@ if __name__ == "__main__":
     print("Final UV: ", c_uv)
 
     #Test for multiple UV points
-    uv_arr = [[0.375     , 0.80408672],[0.625     , 0.80408672],[0.875     , 0.80408672],[0.125     , 0.80408672]]
+    uv_arr = [[0.375     , 0.80408672], [0.625     , 0.80408672], [0.875     , 0.80408672],[0.125     , 0.80408672]]
     #uv_arr = [[0.32, 0.41], [0.22, 0.73], [0.74, 0.25]]
-    uv_target_arr = [[0.34, 0.42], [0.25, 0.71], [0.75, 0.21]]
+    uv_target_arr =  [[-1, 1, -2], [1, 1, -2], [1, -1, -2], [-1, -1, -2]]
 
     coord_arr = [] 
     target_arr = [] 
@@ -167,7 +176,7 @@ if __name__ == "__main__":
         coord_arr.append(td)
 
     for element in uv_target_arr:
-        td = uv_to_topdown(cameraheight, element)
+        td = cartesian_to_topdown(element)
         target_arr.append(td)
 
     print("ORIGINAL UV POSITIONS", coord_arr)
