@@ -3,21 +3,21 @@ import logging
 import shapely.geometry as sg
 import torch
 import torchmetrics as tm
+import utils.pano as pano
 from data import tokens
 from jaxtyping import Shaped
 from torch import Tensor
 
 log = logging.getLogger(__name__)
-
+camera_height = 1.6 #height in meters, an approximation
 
 def topdown_iou(
     pred_object: tokens.TokenSequence, target_object: tokens.TokenSequence, device: torch.device | None = None
 ) -> torch.Tensor:
-    pred_coords = tokens.get_seq_coordinates(pred_object).cpu().numpy()
-    target_coords = tokens.get_seq_coordinates(target_object).cpu().numpy()
-
-    # TODO: Correctly reproject to topdown here
-
+    pred_coords_uv = tokens.get_seq_coordinates(pred_object).cpu().numpy()
+    target_coords_uv = tokens.get_seq_coordinates(target_object).cpu().numpy()
+    pred_coords = pano.uv_to_topdown(camera_height, pred_coords_uv)
+    target_coords = pano.uv_to_topdown(camera_height, target_coords_uv)
 
     if device is None:
         device = torch.get_default_device()
