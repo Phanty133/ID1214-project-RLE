@@ -94,11 +94,8 @@ def get_pano_poly_contour(
 
     return contour
 
-def get_topdown_coords( xyz: Float32[np.ndarray, "N 3"], meridian: MeridianPlane = "yz"
-) -> Float32[np.ndarray, "N 2"]:
-    return np.stack([x, z], axis=-1)
-    
-def uv_to_spherical(cameraHeight, uv: Float32[np.ndarray, "N 2"], meridian: MeridianPlane = "yz"
+
+def uv_to_spherical(cameraHeight, uv: Float32[np.ndarray, "N 2"]
 ) -> Float32[np.ndarray, "N 3"]:
     u = uv[0]
     v = uv[1]
@@ -108,7 +105,7 @@ def uv_to_spherical(cameraHeight, uv: Float32[np.ndarray, "N 2"], meridian: Meri
     #r = 1
     return np.stack([r, theta, phi], axis=-1)
 
-def spherical_to_uv( spherical: Float32[np.ndarray, "N 3"], meridian: MeridianPlane = "yz"
+def spherical_to_uv( spherical: Float32[np.ndarray, "N 3"]
 ) -> Float32[np.ndarray, "N 2"]:
     r = spherical[0]
     phi = spherical[2] 
@@ -118,7 +115,7 @@ def spherical_to_uv( spherical: Float32[np.ndarray, "N 3"], meridian: MeridianPl
     return np.stack([u,v], axis=-1)
 
 
-def uv_to_topdown(cameraheight, uv: Float32[np.ndarray, "N 2"], meridian: MeridianPlane = "yz"
+def uv_to_topdown(cameraheight, uv: Float32[np.ndarray, "N 2"]
 ) -> Float32[np.ndarray, "N 3"]:
     spherical = uv_to_spherical( cameraheight, uv)
     cartesian = spherical_to_cartesian(spherical)
@@ -128,7 +125,20 @@ def uv_to_topdown(cameraheight, uv: Float32[np.ndarray, "N 2"], meridian: Meridi
 
     return [x, y]
 
-def cartesian_to_topdown(cartesian: Float32[np.ndarray, "N 2"], meridian: MeridianPlane = "yz"
+def uv_to_cartesian(cameraheight, uv: Float32[np.ndarray, "N 2"],  meridian: MeridianPlane = "xz"
+) -> Float32[np.ndarray, "N 3"]:
+    spherical = uv_to_spherical( cameraheight, uv)
+    cartesian = spherical_to_cartesian(spherical)
+    x = cartesian[0]
+    y = cartesian[1]
+    z = cartesian[2]
+
+    if meridian == "xz":
+        return [y, x, z]
+   
+    return [x, y, z]
+
+def cartesian_to_topdown(cartesian: Float32[np.ndarray, "N 2"]
 ) -> Float32[np.ndarray, "N 3"]:
     x = cartesian[0]
     y = cartesian[1]
@@ -150,29 +160,28 @@ if __name__ == "__main__":
     y = cartesian[1]
     z = cartesian[2]
     topdown = uv_to_topdown(cameraheight, uv)
-    print("Original UV: ", uv)
-    print("Spherical coord: ", spherical)
-    print("Cartesian coord: ", [x, y, z])
+    #print("Original UV: ", uv)
+    #print("Spherical coord: ", spherical)
+    #print("Cartesian coord: ", [x, y, z])
 
     #Test for single cartesian coordinate
-    c = [-1, 1 ,0-cameraheight]
-    print("Original Cartesian: ", cartesian)
-    c_sphere = cartesian_to_spherical(cartesian)
-    print("Spherical coord: ", c_sphere)
+    c =[-2, -1, -2]
+    #print("Original Cartesian: ", c)
+    c_sphere = cartesian_to_spherical(c)
+    #print("Spherical coord: ", c_sphere)
 
     c_uv = spherical_to_uv(c_sphere)
-    print("Final UV: ", c_uv)
+    #print("Final UV: ", c_uv)
 
     #Test for multiple UV points
-    uv_arr = [[0.375     , 0.80408672], [0.625     , 0.80408672], [0.875     , 0.80408672],[0.125     , 0.80408672]]
-    #uv_arr = [[0.32, 0.41], [0.22, 0.73], [0.74, 0.25]]
+    uv_arr =   [[0.92620819, 0.73227953], [0.53898957, 0.64375939], [0.46101043, 0.64375939], [0.07379181, 0.73227953]]
     uv_target_arr =  [[-1, 1, -2], [1, 1, -2], [1, -1, -2], [-1, -1, -2]]
 
     coord_arr = [] 
     target_arr = [] 
 
     for element in uv_arr:
-        td = uv_to_topdown(cameraheight, element)
+        td = uv_to_cartesian(cameraheight, element)
         coord_arr.append(td)
 
     for element in uv_target_arr:
@@ -180,23 +189,25 @@ if __name__ == "__main__":
         target_arr.append(td)
 
     print("ORIGINAL UV POSITIONS", coord_arr)
-    print("TARGET POSITIONS", target_arr)
+    #print("TARGET POSITIONS", target_arr)
 
     poly = sg.Polygon(coord_arr)
     target_poly = sg.Polygon(target_arr)
     intersection = poly.intersection(target_poly).area
     union = poly.union(target_poly).area
     iou = intersection / union
-    print("IOU", iou)
+    #print("IOU", iou)
 
     
     #Test for multiple cartesian points
-    cart_arr = [[-1, 1, -2], [1, 1, -2], [1, -1, -2], [-1, -1, -2]]
+    cart_arr = [[-2, 1, -2], [4, 1, -2], [4, -1, -2], [-2, -1, -2]]
     uvs_arr = []
     for element in cart_arr:
-        print(element)
-        c_sphere = cartesian_to_spherical(element)
+        print("COORD:" , element)
+        c_sphere = cartesian_to_spherical(element, meridian="xz")
+        print("SPHERICAL", c_sphere)
         c_uv = spherical_to_uv(c_sphere)
+        print("UV: ", c_uv)
         uvs_arr.append(c_uv)
 
     print("ORIGINAL CARTESIAN POSITIONS", cart_arr)
