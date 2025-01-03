@@ -4,7 +4,6 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-
         {
             "name": "Train",
             "type": "debugpy",
@@ -13,6 +12,17 @@
             "console": "integratedTerminal",
             "env": {
                 "PYTHONPATH": "${workspaceFolder}"
+            },
+            "justMyCode": false
+        },
+        {
+            "name": "Test inference",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/tools/inference.py",
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}:${workspaceFolder}/scripts:${workspaceFolder}/tools"
             },
             "justMyCode": false
         }
