@@ -63,7 +63,6 @@ class Model(nn.Module):
         max_len = 64
         bs = image.size(0)
         device = image.device
-
         enc_out = self.forward_encoder(image)
         coords = tokens.pack_token_sequences([[tokens.Token.eos(device)] for _ in range(bs)])
         seqs_done = torch.zeros(bs, dtype=torch.bool, device=device)

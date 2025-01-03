@@ -11,8 +11,8 @@ def spherical_to_cartesian(
     spherical: Float32[np.ndarray, "N 3"], meridian: MeridianPlane = "yz"
 ) -> Float32[np.ndarray, "N 3"]:
     r = spherical[..., 0]
-    azimuthal_angle = spherical[1]
-    polar_angle = spherical[2]
+    azimuthal_angle = spherical[..., 1]
+    polar_angle = spherical[..., 2]
 
     sin_polar = np.sin(polar_angle)
 
@@ -37,12 +37,12 @@ def cartesian_to_spherical(
     # Polar axis=z
     r = np.linalg.norm(xyz, axis=-1)
 
-    polar_angle = np.arccos(np.divide(xyz[2], r, where=r != 0))
+    polar_angle = np.arccos(np.divide(xyz[..., 2], r, where=r != 0))
 
     if meridian == "xz" or meridian == "-xz":
-        azimuthal_angle = np.arctan2(xyz[1], xyz[0])
+        azimuthal_angle = np.arctan2(xyz[..., 1], xyz[..., 0])
     elif meridian == "yz" or meridian == "-yz":
-        azimuthal_angle = np.arctan2(xyz[0], xyz[1])
+        azimuthal_angle = np.arctan2(xyz[..., 0], xyz[..., 1])
 
     if meridian == "-xz" or meridian == "-yz":
         azimuthal_angle = np.pi - azimuthal_angle
@@ -148,7 +148,7 @@ def cartesian_to_topdown(cartesian: Float32[np.ndarray, "N 2"]
 
 
 if __name__ == "__main__":
-
+    '''
     #Test for single UV point
     uv = [0.375     , 0.80408672]
     sample_corner_uv =  np.stack(uv, axis=-1)
@@ -212,4 +212,5 @@ if __name__ == "__main__":
 
     print("ORIGINAL CARTESIAN POSITIONS", cart_arr)
     print("FINAL UV POSITIONS", uvs_arr)
+    '''
 

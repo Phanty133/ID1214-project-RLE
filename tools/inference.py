@@ -5,6 +5,7 @@ Script for testing inference on a panorama image.
 import sys
 from pathlib import Path
 
+
 FILE_DIR = Path(__file__).parent
 ROOT_DIR = FILE_DIR.parent
 SCRIPTS_DIR = ROOT_DIR / "scripts"
@@ -17,6 +18,8 @@ sys.path.append(str(SCRIPTS_DIR))
 import argparse
 import logging
 from collections import OrderedDict
+import scripts.utils.pdraw as draw
+import scripts.utils.pano as pn
 
 import cv2
 import numpy as np
@@ -98,12 +101,10 @@ def main() -> int:
         return 1
 
     log.info("Starting inference on panorama image")
-
     pano_torch = apply_pano_preprocessing(pano)
     model = Model()
     model_weights = ckpt.get("state_dict", ckpt)
     model_weights = rename_compiled_layers(model_weights)
-
     try:
         model.load_state_dict(model_weights)
     except Exception as e:
@@ -113,13 +114,17 @@ def main() -> int:
     token_batch = model.inference(pano_torch.unsqueeze(0))
     token_seq = tokens.split_token_batch(token_batch)[0]
     contour_uv = tokens.get_seq_coordinates(token_seq).cpu().detach().numpy()
-
     output_img = image_reporter.draw_token_ndarray(
         pano, contour_uv, color=(255, 0, 0), label_corners=args.corner_labels
     )
+
+    topdown_coordinates =  []
+    for uv in contour_uv:
+        topdown_coordinates.append(pn.uv_to_topdown(1.6, uv))
+
+    draw.create_image(topdown_coordinates, 500, 500, 50, Path("topdown.png").resolve())
     cv2.imwrite("output.png", cv2.cvtColor(output_img, cv2.COLOR_RGB2BGR))
     log.info("Output image saved to output.png")
-
     return 0
 
 

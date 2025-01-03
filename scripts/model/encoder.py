@@ -27,5 +27,5 @@ class Encoder(nn.Module):
         img_enc_out = cast(Swinv2ModelOutput, self.img_encoder.forward(cast(FloatTensor, image)))
         img_emb = self.reproj(img_enc_out.last_hidden_state)
         img_emb = self.norm(img_emb)
-
+        
         return img_emb
