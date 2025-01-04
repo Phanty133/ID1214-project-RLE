@@ -16,8 +16,15 @@ def topdown_iou(
 ) -> torch.Tensor:
     pred_coords_uv = tokens.get_seq_coordinates(pred_object).cpu().numpy()
     target_coords_uv = tokens.get_seq_coordinates(target_object).cpu().numpy()
-    pred_coords = pano.uv_to_topdown(camera_height, pred_coords_uv)
-    target_coords = pano.uv_to_topdown(camera_height, target_coords_uv)
+
+    pred_coords = []
+    target_coords = []
+
+    for uv in pred_coords_uv:
+        pred_coords.append(pano.uv_to_topdown(camera_height, uv))
+    
+    for uv in target_coords_uv:
+        target_coords.append(pano.uv_to_topdown(camera_height, uv))
 
     if device is None:
         device = torch.get_default_device()

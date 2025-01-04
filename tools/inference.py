@@ -120,9 +120,10 @@ def main() -> int:
 
     topdown_coordinates =  []
     for uv in contour_uv:
-        topdown_coordinates.append(pn.uv_to_topdown(1.6, uv))
+        uv_rotated =  [1-(uv[0] + 0.75) % 1, uv[1]]
+        topdown_coordinates.append(pn.uv_to_topdown(1.6, uv_rotated))
 
-    draw.create_image(topdown_coordinates, 500, 500, 50, Path("topdown.png").resolve())
+    draw.create_image(topdown_coordinates, 1024, 1024, 100, Path("topdown.png").resolve())
     cv2.imwrite("output.png", cv2.cvtColor(output_img, cv2.COLOR_RGB2BGR))
     log.info("Output image saved to output.png")
     return 0
