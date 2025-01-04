@@ -24,7 +24,8 @@
             "env": {
                 "PYTHONPATH": "${workspaceFolder}:${workspaceFolder}/scripts:${workspaceFolder}/tools"
             },
-            "justMyCode": false
+            "justMyCode": false,
+            "args": ["--ckpt", "${workspaceFolder}/tools/model.ckpt", "--pano", "${workspaceFolder}/tools/data/test_pano.jpg"]
         }
     ]
 }
