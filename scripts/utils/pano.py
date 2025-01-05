@@ -2,7 +2,6 @@ from typing import Literal
 
 import numpy as np
 from jaxtyping import Float32
-import shapely.geometry as sg
 
 MeridianPlane = Literal["xz", "yz", "-xz", "-yz"]
 
@@ -102,12 +101,10 @@ def uv_to_spherical(cameraHeight, uv: Float32[np.ndarray, "N 2"]
     phi = np.pi * (v)
     theta = 2 * np.pi *(u-0.5)
     r = -cameraHeight/np.cos(phi)
-    #r = 1
     return np.stack([r, theta, phi], axis=-1)
 
 def spherical_to_uv( spherical: Float32[np.ndarray, "N 3"]
 ) -> Float32[np.ndarray, "N 2"]:
-    r = spherical[0]
     phi = spherical[2] 
     theta = spherical[1] 
     u = theta/(2*np.pi) + 0.5
@@ -121,7 +118,6 @@ def uv_to_topdown(cameraheight, uv: Float32[np.ndarray, "N 2"]
     cartesian = spherical_to_cartesian(spherical)
     x = cartesian[0]
     y = cartesian[1]
-    z = cartesian[2]
 
     return [x, y]
 
@@ -142,75 +138,5 @@ def cartesian_to_topdown(cartesian: Float32[np.ndarray, "N 2"]
 ) -> Float32[np.ndarray, "N 3"]:
     x = cartesian[0]
     y = cartesian[1]
-    z = cartesian[2]
 
     return [x, y]
-
-
-if __name__ == "__main__":
-    '''
-    #Test for single UV point
-    uv = [0.375     , 0.80408672]
-    sample_corner_uv =  np.stack(uv, axis=-1)
-    cameraheight = 2
-    spherical = uv_to_spherical(cameraheight, sample_corner_uv)
-    cartesian = spherical_to_cartesian(spherical)
-
-    x = cartesian[0]
-    y = cartesian[1]
-    z = cartesian[2]
-    topdown = uv_to_topdown(cameraheight, uv)
-    #print("Original UV: ", uv)
-    #print("Spherical coord: ", spherical)
-    #print("Cartesian coord: ", [x, y, z])
-
-    #Test for single cartesian coordinate
-    c =[-2, -1, -2]
-    #print("Original Cartesian: ", c)
-    c_sphere = cartesian_to_spherical(c)
-    #print("Spherical coord: ", c_sphere)
-
-    c_uv = spherical_to_uv(c_sphere)
-    #print("Final UV: ", c_uv)
-
-    #Test for multiple UV points
-    uv_arr =   [[0.92620819, 0.73227953], [0.53898957, 0.64375939], [0.46101043, 0.64375939], [0.07379181, 0.73227953]]
-    uv_target_arr =  [[-1, 1, -2], [1, 1, -2], [1, -1, -2], [-1, -1, -2]]
-
-    coord_arr = [] 
-    target_arr = [] 
-
-    for element in uv_arr:
-        td = uv_to_cartesian(cameraheight, element)
-        coord_arr.append(td)
-
-    for element in uv_target_arr:
-        td = cartesian_to_topdown(element)
-        target_arr.append(td)
-
-    print("ORIGINAL UV POSITIONS", coord_arr)
-    #print("TARGET POSITIONS", target_arr)
-
-    poly = sg.Polygon(coord_arr)
-    target_poly = sg.Polygon(target_arr)
-    intersection = poly.intersection(target_poly).area
-    union = poly.union(target_poly).area
-    iou = intersection / union
-    #print("IOU", iou)
-
-    
-    #Test for multiple cartesian points
-    cart_arr = [[-2, 1, -2], [4, 1, -2], [4, -1, -2], [-2, -1, -2]]
-    uvs_arr = []
-    for element in cart_arr:
-        print("COORD:" , element)
-        c_sphere = cartesian_to_spherical(element, meridian="xz")
-        print("SPHERICAL", c_sphere)
-        c_uv = spherical_to_uv(c_sphere)
-        print("UV: ", c_uv)
-        uvs_arr.append(c_uv)
-
-    print("ORIGINAL CARTESIAN POSITIONS", cart_arr)
-    print("FINAL UV POSITIONS", uvs_arr)
-    '''
-
