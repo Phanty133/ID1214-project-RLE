@@ -15,6 +15,7 @@ The model is trained on the ZinD dataset: https://github.com/zillow/zind
 - ClearML: https://pypi.org/project/clearml/
 - Gradio: https://huggingface.co/gradio
 - OpenCV: https://opencv.org
+- Shapely: https://shapely.readthedocs.io/en/2.0.6/manual.html
 
 Other datasets used for testing (not training): 
 PanoContext: https://panocontext.cs.princeton.edu
